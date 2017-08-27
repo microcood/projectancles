@@ -1,16 +1,10 @@
 from apistar import Include, Route
 from apistar.frameworks.wsgi import WSGIApp as App
 from apistar.handlers import docs_urls, static_urls
-
-
-def welcome(name=None):
-    if name is None:
-        return {'message': 'Hello world!'}
-    return {'message': 'Hello world, %s!' % name}
-
+from projects.urls import projects_urls
 
 routes = [
-    Route('/', 'GET', welcome),
+    Include('/projects', projects_urls),
     Include('/docs', docs_urls),
     Include('/static', static_urls)
 ]
