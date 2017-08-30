@@ -9,7 +9,33 @@ services:
     entrypoint: apistar
     command: ["run", "--host", "0.0.0.0", "--port", "8000"]
     working_dir: /app
+    env_file: .env
+    links:
+      - postgres
     ports:
       - "8000:8000"
+    volumes:
+      - "./api:/app"
+
+  postgres:
+    restart: always
+    image: postgres
+    environment:
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_DB: ${DB_NAME}
+    ports:
+      - "5432:5432"
+    volumes:
+      - "./db_data:/var/lib/postgresql/data"
+
+  test:
+    extends: base
+    entrypoint: apistar
+    command: ["test"]
+    working_dir: /app
+    env_file: .env
+    links:
+      - postgres
     volumes:
       - "./api:/app"
