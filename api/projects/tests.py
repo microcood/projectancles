@@ -1,21 +1,22 @@
-import pytest
-from app import app
+from .models import Project
 from apistar.test import TestClient
+from apistar.backends.sqlalchemy_backend import Session
 
 
-@pytest.fixture()
-def client():
-    return TestClient(app)
-
-
-def test_projects_list(client: TestClient):
+def test_projects_list_empty(session: Session, client: TestClient):
     response = client.get('/projects')
     assert response.status_code == 200
-    assert response.json() == [{'name': 'Hello'}]
+    assert response.json() == []
 
 
-def test_project_view(client: TestClient):
-    response = client.get('/projects/1')
+def test_projects_list(session: Session, client: TestClient):
+    project = Project(name='asdf')
+    session.add(project)
+    session.commit()
+
+    response = client.get('/projects')
     assert response.status_code == 200
-    assert response.json() == {'name': 'Hello'}
-
+    assert response.json() == [{
+        "id": project.id,
+        "name": project.name
+    }]
