@@ -1,6 +1,6 @@
 from apistar import http
 from apistar.backends.sqlalchemy_backend import Session
-from .models import Project
+from .models import Project, ProjectType
 from utils import get_component
 
 
@@ -10,18 +10,15 @@ def create_project(data: http.RequestData):
     session.add(project)
     session.commit()
     return http.Response({
-        'id': project.id,
-        'name': project.name
+        "id": project.id,
+        "name": project.name
     }, status=201)
 
 
 def get_projects_list():
     session = get_component(Session)
     queryset = session.query(Project).all()
-    return [
-        {'id': project.id, 'name': project.name}
-        for project in queryset
-    ]
+    return [ProjectType(project) for project in queryset]
 
 
 def get_project(project_id: int):
@@ -29,23 +26,20 @@ def get_project(project_id: int):
     project = session.query(Project).filter(
         Project.id == project_id
     ).first()
-    return {
-        'id': project.id,
-        'name': project.name
-    }
+    return ProjectType(project)
 
 
 def update_project(project_id: int, data: http.RequestData):
     session = get_component(Session)
-    p = session.query(Project).filter(
+    project = session.query(Project).filter(
         Project.id == project_id
     ).first()
 
-    p.name = data['name']
+    project.name = data['name']
     session.commit()
     return {
-        'id': p.id,
-        'name': p.name
+        "id": project.id,
+        "name": project.name
     }
 
 
