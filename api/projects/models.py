@@ -11,6 +11,6 @@ class Project(Base):
 
 class ProjectType(typesystem.Object):
     properties = {
-        "id": typesystem.Integer,
+        "id": typesystem.integer(default=0),
         "name": typesystem.String
     }

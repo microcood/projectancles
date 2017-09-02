@@ -3,14 +3,11 @@ from apistar.backends.sqlalchemy_backend import Session
 from .models import Project, ProjectType
 
 
-def create_project(data: http.RequestData, session: Session):
+def create_project(data: ProjectType, session: Session):
     project = Project(name=data['name'])
     session.add(project)
     session.commit()
-    return http.Response({
-        "id": project.id,
-        "name": project.name
-    }, status=201)
+    return http.Response(ProjectType(project), status=201)
 
 
 def get_projects_list(session: Session):
@@ -25,17 +22,14 @@ def get_project(project_id: int, session: Session):
     return ProjectType(project)
 
 
-def update_project(project_id: int, data: http.RequestData, session: Session):
+def update_project(project_id: int, data: ProjectType, session: Session):
     project = session.query(Project).filter(
         Project.id == project_id
     ).first()
 
     project.name = data['name']
     session.commit()
-    return {
-        "id": project.id,
-        "name": project.name
-    }
+    return ProjectType(project)
 
 
 def delete_project(project_id: int, session: Session):
