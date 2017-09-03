@@ -91,3 +91,12 @@ def test_project_update(session: Session, client: TestClient):
         "name": "project's new name"
     }
     assert project.name == "project's new name"
+
+
+def test_project_not_exists(client: TestClient):
+    res = client.get('/projects/8884444')
+    res1 = client.patch('/projects/8884444')
+    res2 = client.delete('/projects/8884444')
+
+    assert res.status_code == res1.status_code == res2.status_code == 404
+    assert res.json() == res1.json() == res2.json() == {"message": "Not found"}
