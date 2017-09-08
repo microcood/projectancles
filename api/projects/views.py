@@ -4,19 +4,19 @@ from apistar.exceptions import NotFound
 from .models import Project, ProjectType
 
 
-def create_project(data: ProjectType, session: Session):
+async def create_project(data: ProjectType, session: Session):
     project = Project(name=data['name'])
     session.add(project)
     session.commit()
     return http.Response(ProjectType(project), status=201)
 
 
-def get_projects_list(session: Session):
+async def get_projects_list(session: Session):
     queryset = session.query(Project).all()
     return [ProjectType(project) for project in queryset]
 
 
-def get_project(project_id: int, session: Session):
+async def get_project(project_id: int, session: Session):
     project = session.query(Project).filter(
         Project.id == project_id
     ).first()
@@ -25,7 +25,7 @@ def get_project(project_id: int, session: Session):
     return ProjectType(project)
 
 
-def update_project(project_id: int, data: ProjectType, session: Session):
+async def update_project(project_id: int, data: ProjectType, session: Session):
     project = session.query(Project).filter(
         Project.id == project_id
     ).first()
@@ -36,7 +36,7 @@ def update_project(project_id: int, data: ProjectType, session: Session):
     return ProjectType(project)
 
 
-def delete_project(project_id: int, session: Session):
+async def delete_project(project_id: int, session: Session):
     deleted = session.query(Project).filter(
         Project.id == project_id
     ).delete()

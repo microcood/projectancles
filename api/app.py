@@ -1,7 +1,7 @@
 import os
 from apistar import Include
 from apistar.backends import sqlalchemy_backend
-from apistar.frameworks.wsgi import WSGIApp as App
+from apistar.frameworks.asyncio import ASyncIOApp as App
 from apistar.handlers import docs_urls, static_urls
 from projects.urls import projects_urls
 from db_base import Base
