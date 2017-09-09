@@ -13,6 +13,7 @@ from utils import get_component
 
 
 from projects.tests import *
+from users.tests import *
 
 
 @pytest.fixture(scope='session')
