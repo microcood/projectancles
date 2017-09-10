@@ -1,10 +1,14 @@
 from apistar import Route
-from . import views
+from .views import projects_viewset
+# from . import views
 
-projects_urls = [
-    Route('/', 'GET', views.get_projects_list),
-    Route('/', 'POST', views.create_project),
-    Route('/{project_id}', 'GET', views.get_project),
-    Route('/{project_id}', 'PATCH', views.update_project),
-    Route('/{project_id}', 'DELETE', views.delete_project),
-]
+projects_urls = []
+
+for methodname in dir(projects_viewset):
+    method = getattr(projects_viewset, methodname)
+    is_route = getattr(method, 'is_route', False)
+    if is_route:
+        http_methods = getattr(method, 'http_methods')
+        url = getattr(method, 'url')
+        for http_method in http_methods:
+            projects_urls.append(Route(url, http_method, method))
