@@ -1,5 +1,5 @@
 import os
-from apistar import Include
+from apistar import Include, Command
 from apistar.backends import sqlalchemy_backend
 from apistar.frameworks.asyncio import ASyncIOApp as App
 from apistar.handlers import docs_urls, static_urls
@@ -9,6 +9,8 @@ from rest_utils import register_urls
 from db_base import Base
 from apistar.backends.sqlalchemy_backend import SQLAlchemyBackend
 from utils import get_component
+from server import run
+
 
 settings = {
     "DATABASE": {
@@ -30,7 +32,7 @@ routes = [
 app = App(
     settings=settings,
     routes=routes,
-    commands=sqlalchemy_backend.commands,
+    commands=sqlalchemy_backend.commands + [Command('run', run)],
     components=sqlalchemy_backend.components
 )
 

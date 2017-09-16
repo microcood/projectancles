@@ -2,3 +2,4 @@ apistar[asyncio]
 sqlalchemy
 psycopg2
 faker
+aiohttp_autoreload
