@@ -50,7 +50,7 @@ def create_viewset(model, model_type):
             obj = model(**data)
             session.add(obj)
             session.commit()
-            return http.Response(model_type(obj), status=201)
+            return http.Response(model_type(obj).render(), status=201)
 
         @route('/{obj_id}')
         async def get_obj(obj_id: int, session: Session):
@@ -59,7 +59,7 @@ def create_viewset(model, model_type):
             ).first()
             if not obj:
                 raise NotFound()
-            return model_type(obj)
+            return model_type(obj).render()
 
         @route('/{obj_id}', ['PATCH'])
         async def update_obj(
@@ -77,7 +77,7 @@ def create_viewset(model, model_type):
             for key, value in data.items():
                 setattr(obj, key, value)
             session.commit()
-            return model_type(obj)
+            return model_type(obj).render()
 
         @route('/{obj_id}', ['DELETE'])
         async def delete_obj(obj_id: int, session: Session):
