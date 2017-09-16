@@ -89,9 +89,11 @@ class BaseTestViewSet(object):
             data=fake_obj
         )
 
-        obj = session.query(self.model).filter_by(
-            **fake_obj
-        ).order_by(self.model.id.desc()).first()
+        resp_obj = response.json()
+
+        obj = session.query(self.model).filter(
+            self.model.id == resp_obj['id']
+        ).first()
 
         assert response.status_code == 201
         assert response.json() == dict(obj)
@@ -126,10 +128,11 @@ class BaseTestViewSet(object):
         )
 
         new_obj = dict(obj)
-        new_obj.update(new_mock)
+        for k in new_obj.keys():
+            if new_mock.get(k):
+                new_obj[k] = new_mock.get(k)
 
         session.refresh(obj)
-
         assert dict(obj) == new_obj
         assert response.status_code == 200
         assert response.json() == dict(obj)
