@@ -156,7 +156,22 @@ class TestUserViewSet(BaseTestViewSet):
         return {
             "first_name": fake.first_name(),
             "last_name": fake.last_name(),
+            "password": fake.password()
         }
+
+    def test_password(self, session: Session, client: TestClient):
+        from werkzeug.security import check_password_hash
+
+        fake_obj = self.mock_obj()
+        response = client.post(
+            '/{}/'.format(self.url),
+            data=fake_obj
+        )
+        user_obj = response.json()
+        user = session.query(User).filter(User.id == user_obj['id']).first()
+        assert check_password_hash(str(user.password), fake_obj['password'])
+
+    # def test_django_password_validation(self)
 
 
 class TestProjectsViewSet(BaseTestViewSet):
