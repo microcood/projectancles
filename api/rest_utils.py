@@ -17,7 +17,9 @@ def register_urls(name, viewset):
         http_methods = getattr(method, 'http_methods')
         url = getattr(method, 'url')
         for http_method in http_methods:
-            object_urls.append(Route(url, http_method, method, name=method.__name__))
+            object_urls.append(
+                Route(url, http_method, method, name=method.__name__)
+            )
     return Include(name, object_urls)
 
 
@@ -33,16 +35,17 @@ def route(url, methods=None, **kwargs):
 
 
 def create_viewset(model, model_type):
+
     class ViewSet(object):
         model_cls = model
 
         @route('/')
-        async def get_objs_list(self, session: Session):
+        async def get_objs_list(session: Session):
             queryset = session.query(model).all()
             return [model_type(obj) for obj in queryset]
 
         @route('/', ['POST'])
-        async def create_obj(self, data: model_type, session: Session):
+        async def create_obj(data: model_type, session: Session):
             data.pop('id')
             obj = model(**data)
             session.add(obj)
@@ -50,7 +53,7 @@ def create_viewset(model, model_type):
             return http.Response(model_type(obj), status=201)
 
         @route('/{obj_id}')
-        async def get_obj(self, obj_id: int, session: Session):
+        async def get_obj(obj_id: int, session: Session):
             obj = session.query(model).filter(
                 model.id == obj_id
             ).first()
@@ -60,7 +63,6 @@ def create_viewset(model, model_type):
 
         @route('/{obj_id}', ['PATCH'])
         async def update_obj(
-            self,
             obj_id: int,
             data: model_type,
             session: Session
@@ -78,7 +80,7 @@ def create_viewset(model, model_type):
             return model_type(obj)
 
         @route('/{obj_id}', ['DELETE'])
-        async def delete_obj(self, obj_id: int, session: Session):
+        async def delete_obj(obj_id: int, session: Session):
             deleted = session.query(model).filter(
                 model.id == obj_id
             ).delete()
@@ -87,4 +89,3 @@ def create_viewset(model, model_type):
             session.commit()
             return http.Response(status=204)
     return ViewSet
- 
