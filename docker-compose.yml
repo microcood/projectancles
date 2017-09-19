@@ -33,9 +33,9 @@ services:
     extends: base
     entrypoint: apistar
     command: ["test"]
-    working_dir: /api
+    working_dir: /app
     env_file: .env
     links:
       - postgres
     volumes:
-      - "./app:/app"
+      - "./app:/app" 
