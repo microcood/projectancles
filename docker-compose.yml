@@ -15,7 +15,7 @@ services:
     ports:
       - "8000:8000"
     volumes:
-      - "./api:/app"
+      - "./app:/app"
 
   postgres:
     restart: always
@@ -33,9 +33,9 @@ services:
     extends: base
     entrypoint: apistar
     command: ["test"]
-    working_dir: /app
+    working_dir: /api
     env_file: .env
     links:
       - postgres
     volumes:
-      - "./api:/app"
+      - "./app:/app"

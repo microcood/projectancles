@@ -1,6 +1,7 @@
 from sqlalchemy import inspect
 from sqlalchemy.ext.declarative import declarative_base
 
+
 class IterableBase():
     def __getitem__(self, key):
         return getattr(self, key)

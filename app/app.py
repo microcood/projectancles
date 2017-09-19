@@ -7,9 +7,8 @@ from projects.views import ProjectsViewset
 from users.views import UsersViewSet
 from rest_utils import register_urls
 from db_base import Base
-from apistar.backends.sqlalchemy_backend import SQLAlchemyBackend
-from utils import get_component
 from server import run
+from migrations.commands import revision, upgrade, downgrade
 
 
 settings = {
@@ -32,12 +31,14 @@ routes = [
 app = App(
     settings=settings,
     routes=routes,
-    commands=sqlalchemy_backend.commands + [Command('run', run)],
+    commands=sqlalchemy_backend.commands + [
+        Command('run', run),
+        Command('make_migrations', revision),
+        Command('migrate', upgrade),
+        Command('revert_migrations', downgrade),
+    ],
     components=sqlalchemy_backend.components
 )
-
-backend = get_component(SQLAlchemyBackend)
-Base.metadata.create_all(backend.engine)
 
 
 if __name__ == '__main__':
