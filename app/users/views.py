@@ -15,4 +15,4 @@ class UsersViewSet(create_viewset(User, UserType)):
         obj.password = generate_password_hash(obj.password)
         session.add(obj)
         session.commit()
-        return http.Response(UserType(obj), status=201)
+        return http.Response(UserType(obj).render(), status=201)

@@ -5,7 +5,7 @@ from typesystem import ModelType
 
 
 class UserType(ModelType):
-    render_fields = ['id', 'first_name', 'last_name', 'password']
+    render_fields = ['id', 'first_name', 'last_name']
     properties = {
         "id": typesystem.integer(default=0),
         "first_name": typesystem.String,

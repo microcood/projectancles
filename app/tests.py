@@ -13,8 +13,8 @@ from app import app
 from db_base import Base
 from utils import get_component
 
-from users.models import User
-from projects.models import Project
+from users.models import User, UserType
+from projects.models import Project, ProjectType
 from apistar.test import TestClient
 from apistar.backends.sqlalchemy_backend import Session
 
@@ -80,7 +80,10 @@ class BaseTestViewSet(object):
         response = client.get('/{}/'.format(self.url))
 
         assert response.status_code == 200
-        assert response.json() == [dict(obj), dict(obj2)]
+        assert response.json() == [
+            self.model_type(obj).render(),
+            self.model_type(obj2).render()
+        ]
 
     def test_create(self, session: Session, client: TestClient):
         fake_obj = self.mock_obj()
@@ -96,14 +99,14 @@ class BaseTestViewSet(object):
         ).first()
 
         assert response.status_code == 201
-        assert response.json() == dict(obj)
+        assert response.json() == self.model_type(obj).render()
 
     def test_view_one(self, session: Session, client: TestClient):
         obj = self.create_obj(session)
 
         response = client.get('/{}/{}'.format(self.url, obj.id))
         assert response.status_code == 200
-        assert response.json() == dict(obj)
+        assert response.json() == self.model_type(obj).render()
 
     def test_delete(self, session: Session, client: TestClient):
         obj = self.create_obj(session)
@@ -135,7 +138,7 @@ class BaseTestViewSet(object):
         session.refresh(obj)
         assert dict(obj) == new_obj
         assert response.status_code == 200
-        assert response.json() == dict(obj)
+        assert response.json() == self.model_type(obj).render()
 
     def test_nonexistance(self, client: TestClient):
         res = client.get('/{}/{}'.format(self.url, 12344123))
@@ -151,6 +154,7 @@ class BaseTestViewSet(object):
 class TestUserViewSet(BaseTestViewSet):
     url = 'users'
     model = User
+    model_type = UserType
 
     def mock_obj(self):
         return {
@@ -171,12 +175,19 @@ class TestUserViewSet(BaseTestViewSet):
         user = session.query(User).filter(User.id == user_obj['id']).first()
         assert check_password_hash(str(user.password), fake_obj['password'])
 
+    def test_password_not_exposed(self, session: Session, client: TestClient):
+        obj = self.create_obj(session)
+        response = client.get('/{}/{}'.format(self.url, obj.id))
+        resp_obj = response.json()
+        assert not resp_obj.get('password')
+
     # def test_django_password_validation(self)
 
 
 class TestProjectsViewSet(BaseTestViewSet):
     url = 'projects'
     model = Project
+    model_type = ProjectType
 
     def mock_obj(self):
         return {

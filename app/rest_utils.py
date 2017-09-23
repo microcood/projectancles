@@ -42,7 +42,7 @@ def create_viewset(model, model_type):
         @route('/')
         async def get_objs_list(session: Session):
             queryset = session.query(model).all()
-            return [model_type(obj) for obj in queryset]
+            return [model_type(obj).render() for obj in queryset]
 
         @route('/', ['POST'])
         async def create_obj(data: model_type, session: Session):
