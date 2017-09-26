@@ -13,8 +13,8 @@ from app import app
 from db_base import Base
 from utils import get_component
 
-from users.models import User, UserType
-from projects.models import Project, ProjectType
+from users.models import User
+from projects.models import Project
 from apistar.test import TestClient
 from apistar.backends.sqlalchemy_backend import Session
 
@@ -81,8 +81,8 @@ class BaseTestViewSet(object):
 
         assert response.status_code == 200
         assert response.json() == [
-            self.model_type(obj).render(),
-            self.model_type(obj2).render()
+            obj.render(),
+            obj2.render()
         ]
 
     def test_create(self, session: Session, client: TestClient):
@@ -99,14 +99,14 @@ class BaseTestViewSet(object):
         ).first()
 
         assert response.status_code == 201
-        assert response.json() == self.model_type(obj).render()
+        assert response.json() == obj.render()
 
     def test_view_one(self, session: Session, client: TestClient):
         obj = self.create_obj(session)
 
         response = client.get('/{}/{}'.format(self.url, obj.id))
         assert response.status_code == 200
-        assert response.json() == self.model_type(obj).render()
+        assert response.json() == obj.render()
 
     def test_delete(self, session: Session, client: TestClient):
         obj = self.create_obj(session)
@@ -138,7 +138,7 @@ class BaseTestViewSet(object):
         session.refresh(obj)
         assert dict(obj) == new_obj
         assert response.status_code == 200
-        assert response.json() == self.model_type(obj).render()
+        assert response.json() == obj.render()
 
     def test_nonexistance(self, client: TestClient):
         res = client.get('/{}/{}'.format(self.url, 12344123))
@@ -154,7 +154,6 @@ class BaseTestViewSet(object):
 class TestUserViewSet(BaseTestViewSet):
     url = 'users'
     model = User
-    model_type = UserType
 
     def mock_obj(self):
         return {
@@ -187,7 +186,6 @@ class TestUserViewSet(BaseTestViewSet):
 class TestProjectsViewSet(BaseTestViewSet):
     url = 'projects'
     model = Project
-    model_type = ProjectType
 
     def mock_obj(self):
         return {

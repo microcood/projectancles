@@ -1,10 +1,9 @@
 from sqlalchemy import Column, Integer, String, Text
 from apistar import typesystem
-from db_base import Base
-from typesystem import ModelType
+from db_base import Base, BaseScheme
 
 
-class UserType(ModelType):
+class UserScheme(BaseScheme):
     render_fields = ['id', 'first_name', 'last_name']
     properties = {
         "id": typesystem.integer(default=0),
@@ -16,6 +15,7 @@ class UserType(ModelType):
 
 class User(Base):
     __tablename__ = "users"
+    _scheme = UserScheme
 
     id = Column(Integer, primary_key=True)
     first_name = Column(String)
