@@ -3,9 +3,8 @@ from apistar import Include, Command
 from apistar.backends import sqlalchemy_backend
 from apistar.frameworks.asyncio import ASyncIOApp as App
 from apistar.handlers import docs_urls, static_urls
-from projects.views import ProjectsViewset
-from users.views import UsersViewSet
-from rest_utils import register_urls
+from projects.routes import routes as projects_routes
+from users.routes import routes as users_routes
 from db_base import Base
 from server import run
 from migrations.commands import revision, upgrade, downgrade
@@ -21,8 +20,8 @@ settings = {
 
 
 routes = [
-    register_urls('/projects', ProjectsViewset),
-    register_urls('/users', UsersViewSet),
+    users_routes,
+    projects_routes,
     Include('/docs', docs_urls),
     Include('/static', static_urls)
 ]
