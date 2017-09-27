@@ -1,4 +1,5 @@
 from sqlalchemy import Column, Integer, String, Text
+from sqlalchemy_utils import EmailType
 from apistar import typesystem
 from db_base import Base, BaseScheme
 
@@ -21,3 +22,4 @@ class User(Base):
     first_name = Column(String)
     last_name = Column(String)
     password = Column(Text)
+    email = Column(EmailType)
