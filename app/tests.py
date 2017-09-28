@@ -1,12 +1,15 @@
 import os
 import pytest
+from datetime import datetime
 
+import jwt
 from faker import Faker
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import NullPool
 
+from apistar import Settings
 from apistar.backends.sqlalchemy_backend import SQLAlchemyBackend
 
 from app import app
@@ -192,3 +195,26 @@ class TestProjectsViewSet(BaseTestViewSet):
         return {
             "name": fake.word(),
         }
+
+
+def test_token(session: Session, client: TestClient):
+    settings = get_component(Settings)
+    JWT_SECRET = settings['JWT_SECRET']
+
+    user = TestUserViewSet().create_obj(session)
+
+    response = client.post('/tokens/', data={
+        "grant_type": "password",
+        "username": user.email,
+        "password": user.password,
+    })
+    response_dict = response.json()
+    jwt_payload = jwt.decode(
+        response_dict['access_token'], JWT_SECRET, algorithms=['HS256'])
+
+    assert response.status_code == 200
+    assert jwt_payload == {
+        "user_id": user.id,
+        "exp": response_dict['expires_in']
+    }
+    assert response_dict['expires_in'] > int(datetime.now().timestamp())

@@ -5,3 +5,4 @@ psycopg2
 faker
 aiohttp_autoreload
 alembic
+pyjwt
