@@ -5,12 +5,13 @@ from db_base import Base, BaseScheme
 
 
 class UserScheme(BaseScheme):
-    render_fields = ['id', 'first_name', 'last_name']
+    render_fields = ['id', 'first_name', 'last_name', 'email']
     properties = {
         "id": typesystem.integer(default=0),
         "first_name": typesystem.String,
         "last_name": typesystem.String,
-        "password": typesystem.String
+        "password": typesystem.String,
+        "email": typesystem.String,
     }
 
 

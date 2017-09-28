@@ -159,7 +159,8 @@ class TestUserViewSet(BaseTestViewSet):
         return {
             "first_name": fake.first_name(),
             "last_name": fake.last_name(),
-            "password": fake.password()
+            "password": fake.password(),
+            "email": fake.email()
         }
 
     def test_password(self, session: Session, client: TestClient):
