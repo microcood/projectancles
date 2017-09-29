@@ -57,8 +57,20 @@ def session(request):
 
 
 @pytest.fixture(scope='session')
-def client():
+def anon_client():
     return TestClient(app)
+
+
+@pytest.fixture(scope='session')
+def client():
+    clnt = TestClient(app)
+    settings = get_component(Settings)
+    token = jwt.encode(
+        {'user_id': 1234}, settings['JWT_SECRET'], algorithm='HS256')
+    clnt.headers.update(
+        {'Authorization': 'Bearer {}'.format(token.decode('utf-8'))})
+    print(clnt.headers)
+    return clnt
 
 
 class BaseTestViewSet(object):
@@ -218,3 +230,25 @@ def test_token(session: Session, client: TestClient):
         "exp": response_dict['expires_in']
     }
     assert response_dict['expires_in'] > int(datetime.now().timestamp())
+
+
+def test_authorization_flow(session: Session, anon_client: TestClient):
+    user = TestUserViewSet().create_obj(session)
+    response = anon_client.get('/projects/')
+
+    assert response.status_code == 401
+    assert response.json() == {"message": "Not authenticated"}
+
+    response = anon_client.post('/tokens/', data={
+        "grant_type": "password",
+        "username": user.email,
+        "password": user.password,
+    })
+
+    token = response.json().get('access_token')
+    anon_client.headers.update(
+        {'Authorization': 'Bearer {}'.format(token)})
+
+    response = anon_client.get('/projects/')
+    assert response.status_code == 200
+    assert type(response.json()) == list

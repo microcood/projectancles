@@ -1,7 +1,9 @@
 from datetime import datetime, timedelta
 import jwt
-from apistar import typesystem, Route, Include, Settings
+from apistar import annotate, http, typesystem, Route, Include, Settings
 from apistar.backends.sqlalchemy_backend import Session
+from apistar.authentication import Authenticated
+from apistar.exceptions import HTTPException
 from users.models import User
 
 
@@ -13,6 +15,25 @@ class LoginData(typesystem.Object):
     }
 
 
+class Unauthorized(HTTPException):
+    default_status_code = 401
+    default_detail = 'Not authenticated'
+
+
+class TokenAuthentication():
+    def authenticate(self, authorization: http.Header, settings: Settings):
+        if not authorization:
+            raise Unauthorized()
+        scheme, token = authorization.split()
+        try:
+            payload = jwt.decode(
+                token, settings['JWT_SECRET'], algorithms=['HS256'])
+            return Authenticated(payload['user_id'])
+        except jwt.exceptions.InvalidTokenError:
+            raise Unauthorized()
+
+
+@annotate(permissions=[])
 async def create_token(
     data: LoginData,
     session: Session,
