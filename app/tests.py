@@ -80,8 +80,10 @@ class BaseTestViewSet(object):
     def _mock_obj(self):
         return {}
 
-    def _create_obj(self, session):
-        obj = self.model(**self._mock_obj())
+    def _create_obj(self, session, data=None):
+        if not data:
+            data = self._mock_obj()
+        obj = self.model(**data)
         session.add(obj)
         session.commit()
         return obj
@@ -258,6 +260,22 @@ class TestUserViewSet(BaseTestViewSet):
         assert response1.status_code == 401
         assert response2.status_code == 200
         assert response3.status_code == 200
+
+    @pytest.fixture
+    def sample_users(self, session):
+        users = [
+            {"first_name": "George", "last_name": "Zhang"},
+            {"first_name": "John", "last_name": "Honn"},
+            {"first_name": "John", "last_name": "Pintor"}
+        ]
+        return [self._create_obj(session, data=user) for user in users]
+
+    def test_filtering(self, clean_db, sample_users, client):
+        response = client.get('/users/?first_name=John')
+        assert [
+            "{} {}".format(x['first_name'], x['last_name'])
+            for x in response.json()
+        ] == ["John Honn", "John Pintor"]
 
 
 class TestProjectsViewSet(BaseTestViewSet):

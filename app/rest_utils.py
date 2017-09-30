@@ -4,8 +4,8 @@ from apistar.exceptions import NotFound
 
 
 def list_route(model):
-    async def func(session: Session):
-        queryset = session.query(model).all()
+    async def func(session: Session, query_params: http.QueryParams):
+        queryset = session.query(model).filter_by(**query_params)
         return [obj.render() for obj in queryset]
     return Route(
         '/', 'GET', func, name="list_{}s".format(model.__name__.lower()))
