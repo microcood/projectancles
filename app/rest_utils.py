@@ -1,11 +1,60 @@
+import re
+from sqlalchemy import or_
 from apistar import http, Route
 from apistar.backends.sqlalchemy_backend import Session
-from apistar.exceptions import NotFound
+from apistar.exceptions import NotFound, BadRequest
+from apistar import typesystem
+
+
+class Filters(typesystem.String):
+    operator_map = {
+        '==': '__eq__',
+        '!=': '__ne__',
+        '>': '__gt__',
+        '<': '__lt__',
+        '>=': '__ge__',
+        '<=': '__le__',
+        '~contains~': 'contains',
+    }
+    description = (
+        "comparison operators: {}".format(" , ".join(operator_map.keys()))
+    )
+
+    def __new__(cls, *args, **kwargs):
+        data = super().__new__(cls, *args, **kwargs)
+
+        pairs = data.split(',')
+        expressions = []
+
+        for pair in pairs:
+            # finds comparison operators or anything between `~`
+            op = re.search(r'(>(=)?)|(<(=)?)|(==)|(!=)|~(.*)~', pair)
+            try:
+                operator = cls.operator_map.get(op.group())
+                field_name, value = pair.split(op.group())
+                column = getattr(cls.model, field_name)
+                comparator = getattr(column, operator)
+                expressions.append(comparator(value))
+            except AttributeError:
+                raise BadRequest()
+        return expressions
+
+
+def get_model_filters(model):
+    cls = Filters
+    cls.model = model
+    return cls
 
 
 def list_route(model):
-    async def func(session: Session, query_params: http.QueryParams):
-        queryset = session.query(model).filter_by(**query_params)
+    async def func(
+        session: Session,
+        filters: get_model_filters(model),
+        query_params: http.QueryParams
+    ):
+        queryset = session.query(model)
+        if filters:
+            queryset = queryset.filter(or_(*filters))
         return [obj.render() for obj in queryset]
     return Route(
         '/', 'GET', func, name="list_{}s".format(model.__name__.lower()))
