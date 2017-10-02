@@ -19,9 +19,6 @@ def run(app: App,
         host: str='127.0.0.1',
         port: int=8080,
         debug: bool=True):
-    if debug:
-        from uvitools.debug import DebugMiddleware
-        app = DebugMiddleware(app, evalex=True)
-        app.debug_mode = True
+    app.debug_mode = debug
 
     ReloadingServer().run(app, host, port)
