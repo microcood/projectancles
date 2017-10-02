@@ -68,14 +68,24 @@ def list_route(model):
         session: Session,
         filters: bind(Filters, model),
         ordering: bind(Ordering, model),
+        limit: int,
+        offset: int,
         query_params: http.QueryParams
     ):
-        queryset = session.query(model)
+        qs = session.query(model)
         if filters:
-            queryset = queryset.filter(or_(*filters))
+            qs = qs.filter(or_(*filters))
         if ordering:
-            queryset = queryset.order_by(ordering())
-        return [obj.render() for obj in queryset]
+            qs = qs.order_by(ordering())
+        count = qs.count()
+        if limit:
+            qs = qs.limit(limit)
+        if offset:
+            qs = qs.offset(offset)
+        return http.Response(
+            [obj.render() for obj in qs],
+            headers={"X-Total-Count": str(count)}
+        )
     return Route(
         '/', 'GET', func, name="list_{}s".format(model.__name__.lower()))
 

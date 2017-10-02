@@ -101,7 +101,7 @@ class BaseTestViewSet(object):
         session.query(self.model).delete()
         session.commit()
 
-    def test_list(self, session: Session, client: TestClient):
+    def test_list(self, clean_db, session: Session, client: TestClient):
         obj = self._create_obj(session)
         obj2 = self._create_obj(session)
 
@@ -112,6 +112,7 @@ class BaseTestViewSet(object):
             obj.render(),
             obj2.render()
         ]
+        assert response.headers["X-Total-Count"] == '2'
 
     def test_list_empty(self, clean_db, client: TestClient):
         response = client.get('/{}/'.format(self.url))
@@ -277,6 +278,10 @@ class TestUserViewSet(BaseTestViewSet):
             ["George Zhang", "John Pintor"]),
         ("?ordering=-last_name",
             ["George Zhang", "John Pintor", "John Honn"]),
+        ("?limit=2",
+            ["George Zhang", "John Honn"]),
+        ("?offset=2",
+            ["John Pintor"]),
     ])
     def test_query_params(self, clean_db, sample_users, client, query, expect):
         response = client.get('/users/{}'.format(query))
