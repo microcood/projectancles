@@ -1,4 +1,5 @@
 from sqlalchemy import Column, Integer, String, Text
+from sqlalchemy.orm import relationship
 from sqlalchemy_utils import EmailType
 from apistar import typesystem
 from db_base import Base, BaseScheme
@@ -24,3 +25,4 @@ class User(Base):
     last_name = Column(String)
     password = Column(Text)
     email = Column(EmailType)
+    projects = relationship("Project", back_populates="user")
