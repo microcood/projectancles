@@ -270,24 +270,22 @@ class TestUserViewSet(BaseTestViewSet):
         ]
         return [self._create_obj(session, data=user) for user in users]
 
-    def test_filtering(self, clean_db, sample_users, client):
-        response = client.get('/users/?filters=first_name==John')
+    @pytest.mark.parametrize("query, expect", [
+        ("?filters=first_name==John",
+            ["John Honn", "John Pintor"]),
+        ("?filters=first_name~contains~or,last_name~contains~or",
+            ["George Zhang", "John Pintor"]),
+        ("?ordering=-last_name",
+            ["George Zhang", "John Pintor", "John Honn"]),
+    ])
+    def test_query_params(self, clean_db, sample_users, client, query, expect):
+        response = client.get('/users/{}'.format(query))
 
         assert response.status_code == 200
         assert [
             "{} {}".format(x['first_name'], x['last_name'])
             for x in response.json()
-        ] == ["John Honn", "John Pintor"]
-
-    def test_search(self, clean_db, sample_users, client):
-        response = client.get(
-            '/users/?filters=first_name~contains~or,last_name~contains~or')
-
-        assert response.status_code == 200
-        assert [
-            "{} {}".format(x['first_name'], x['last_name'])
-            for x in response.json()
-        ] == ["George Zhang", "John Pintor"]
+        ] == expect
 
 
 class TestProjectsViewSet(BaseTestViewSet):

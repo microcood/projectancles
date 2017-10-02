@@ -40,8 +40,25 @@ class Filters(typesystem.String):
         return expressions
 
 
-def get_model_filters(model):
-    cls = Filters
+class Ordering(typesystem.String):
+    description = "prepend field name with `-` to descend"
+
+    def __new__(cls, *args, **kwargs):
+        data = super().__new__(cls, *args, **kwargs)
+
+        expression = None
+        order = "desc" if data.startswith('-') else "asc"
+
+        try:
+            field_name = re.sub(r'^-', '', data)
+            column = getattr(cls.model, field_name)
+            expression = getattr(column, order)
+        except AttributeError:
+            raise BadRequest()
+        return expression
+
+
+def bind(cls, model):
     cls.model = model
     return cls
 
@@ -49,12 +66,15 @@ def get_model_filters(model):
 def list_route(model):
     async def func(
         session: Session,
-        filters: get_model_filters(model),
+        filters: bind(Filters, model),
+        ordering: bind(Ordering, model),
         query_params: http.QueryParams
     ):
         queryset = session.query(model)
         if filters:
             queryset = queryset.filter(or_(*filters))
+        if ordering:
+            queryset = queryset.order_by(ordering())
         return [obj.render() for obj in queryset]
     return Route(
         '/', 'GET', func, name="list_{}s".format(model.__name__.lower()))
