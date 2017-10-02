@@ -3,6 +3,7 @@ sqlalchemy
 sqlalchemy_utils
 psycopg2
 faker
+passlib
 aiohttp_autoreload
 alembic
 pyjwt

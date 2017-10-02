@@ -13,7 +13,6 @@ from apistar import Settings
 from apistar.backends.sqlalchemy_backend import SQLAlchemyBackend
 from apistar.test import TestClient
 from apistar.backends.sqlalchemy_backend import Session
-from werkzeug.security import check_password_hash
 
 from app import app
 from db_base import Base
@@ -208,7 +207,7 @@ class TestUserViewSet(BaseTestViewSet):
         user_obj = response.json()
         user = session.query(User).filter_by(id=user_obj['id']).first()
 
-        assert check_password_hash(str(user.password), mock['password'])
+        assert user.password == mock['password']
 
     def test_password_not_exposed(self, new_obj, client: TestClient):
         response = client.get('/{}/{}'.format(self.url, new_obj.id))
@@ -218,13 +217,16 @@ class TestUserViewSet(BaseTestViewSet):
     def test_user_bound_token(
         self,
         settings: Settings,
-        new_obj: Base,
-        client: TestClient
+        session: Session,
+        mock: dict,
+        anon_client: TestClient
     ):
-        response = client.post('/tokens/', data={
+        user = self._create_obj(session, data=mock)
+
+        response = anon_client.post('/tokens/', data={
             "grant_type": "password",
-            "username": new_obj.email,
-            "password": new_obj.password,
+            "username": user.email,
+            "password": mock['password'],
         })
         response_dict = response.json()
         jwt_payload = jwt.decode(
@@ -235,22 +237,23 @@ class TestUserViewSet(BaseTestViewSet):
 
         assert response.status_code == 200
         assert jwt_payload == {
-            "user_id": new_obj.id,
+            "user_id": user.id,
             "exp": response_dict['expires_in']
         }
         assert response_dict['expires_in'] > int(datetime.now().timestamp())
 
     def test_authorization_flow(
         self,
-        new_obj: Base,
+        mock: dict,
         session: Session,
         anon_client: TestClient
     ):
+        new_obj = self._create_obj(session, data=mock)
         response1 = anon_client.get('/projects/')
         response2 = anon_client.post('/tokens/', data={
             "grant_type": "password",
             "username": new_obj.email,
-            "password": new_obj.password,
+            "password": mock['password'],
         })
         token = response2.json().get('access_token')
         anon_client.headers.update({
