@@ -1,7 +1,8 @@
 import os
-from apistar import Include, Command
+import logging
+from apistar import http, exceptions, Include, Command
 from apistar.backends import sqlalchemy_backend
-from apistar.frameworks.asyncio import ASyncIOApp as App
+from apistar.frameworks.asyncio import ASyncIOApp
 from apistar.handlers import docs_urls, static_urls
 from apistar.permissions import IsAuthenticated
 from projects.routes import routes as projects_routes
@@ -11,7 +12,6 @@ from db_base import Base
 from server import run
 from migrations.commands import revision, upgrade, downgrade
 from tokens.routes import TokenAuthentication
-
 
 settings = {
     "AUTHENTICATION": [TokenAuthentication()],
@@ -23,6 +23,28 @@ settings = {
         "METADATA": Base.metadata
     }
 }
+
+
+class App(ASyncIOApp):
+    def exception_handler(self, exc: Exception) -> http.Response:
+        if isinstance(exc, exceptions.Found):
+            return http.Response(
+                status=exc.status_code,
+                headers={'Location': exc.location}
+            )
+
+        if isinstance(exc, exceptions.HTTPException):
+            if isinstance(exc.detail, str):
+                content = {'message': exc.detail}
+            else:
+                content = exc.detail
+            return http.Response(content, exc.status_code, {})
+
+        logging.exception(exc)
+        return http.Response(
+            {'message': 'Unexpected error'},
+            status=500
+        )
 
 
 routes = [
