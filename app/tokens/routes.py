@@ -3,7 +3,7 @@ import jwt
 from apistar import annotate, http, typesystem, Route, Include, Settings
 from apistar.backends.sqlalchemy_backend import Session
 from apistar.authentication import Authenticated
-from apistar.exceptions import HTTPException
+from apistar.exceptions import HTTPException, BadRequest
 from users.models import User
 
 
@@ -40,6 +40,8 @@ async def create_token(
     settings: Settings
 ):
     user = session.query(User).filter_by(email=data['username']).first()
+    if not user or not user.password == data['password']:
+        raise BadRequest({"message": "Email and password do not match"})
     expires = (datetime.now() + timedelta(days=5)).timestamp()
     token = jwt.encode(
         {'user_id': user.id, 'exp': int(expires)},

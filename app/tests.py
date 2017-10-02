@@ -242,6 +242,31 @@ class TestUserViewSet(BaseTestViewSet):
         }
         assert response_dict['expires_in'] > int(datetime.now().timestamp())
 
+    def test_fake_email_fails(
+        self,
+        clean_db,
+        anon_client: TestClient
+    ):
+        response = anon_client.post('/tokens/', data={
+            "username": fake.email(),
+            "password": fake.password()
+        })
+        assert response.status_code == 400
+        assert {"message": "Email and password do not match"}
+
+    def test_fake_password_fails(
+        self,
+        clean_db,
+        new_obj: User,
+        anon_client: TestClient
+    ):
+        response = anon_client.post('/tokens/', data={
+            "username": new_obj.email,
+            "password": fake.password()
+        })
+        assert response.status_code == 400
+        assert {"message": "Email and password do not match"}
+
     def test_authorization_flow(
         self,
         mock: dict,
