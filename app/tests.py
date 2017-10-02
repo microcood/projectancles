@@ -320,6 +320,14 @@ class TestUserViewSet(BaseTestViewSet):
             for x in response.json()
         ] == expect
 
+    @pytest.mark.parametrize("method, url", [
+        ("GET", '/{}/3'),
+        ("PATCH", '/{}/3'),
+        ("DELETE", '/{}/3'),
+    ])
+    def test_not_authenticated(self, anon_client: TestClient, method, url):
+        return super().test_not_authenticated(anon_client, method, url)
+
 
 class TestProjectsViewSet(BaseTestViewSet):
     url = 'projects'

@@ -1,9 +1,10 @@
 from .models import User
-from apistar import http, Include, Route
+from apistar import annotate, http, Include, Route
 from apistar.backends.sqlalchemy_backend import Session
 from rest_utils import common_routes
 
 
+@annotate(permissions=[])
 async def create_user(data: User._scheme, session: Session):
     data.pop('id')
     obj = User(**data)
