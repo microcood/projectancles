@@ -4,11 +4,19 @@ from apistar import typesystem
 from db_base import Base, BaseScheme
 
 
+class NullableInt(typesystem.Integer):
+    def __new__(cls, *args, **kwargs):
+        if args[0] is None:
+            return None
+        return super().__new__(cls, *args, **kwargs)
+
+
 class ProjectScheme(BaseScheme):
-    render_fields = ['id', 'name']
+    render_fields = ['id', 'name', 'user_id']
     properties = {
         "id": typesystem.integer(default=0),
-        "name": typesystem.String
+        "name": typesystem.String,
+        "user_id": NullableInt
     }
 
 

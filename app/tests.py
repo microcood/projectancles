@@ -337,3 +337,9 @@ class TestProjectsViewSet(BaseTestViewSet):
         return {
             "name": fake.word(),
         }
+
+    def test_create(self, mock: dict, session: Session, client: TestClient):
+        obj = User(id=1234)
+        session.add(obj)
+        session.commit()
+        return super().test_create(mock, session, client)

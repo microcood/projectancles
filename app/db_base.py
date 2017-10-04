@@ -19,7 +19,7 @@ class IterableBase():
             yield (c.key, getattr(self, c.key))
 
     def render(self):
-        obj = self._scheme(self)
+        obj = self._scheme(dict(self))
         return {k: obj[k] for k in self._scheme.render_fields}
 
 
